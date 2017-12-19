@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+		<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+		<title>title</title>
+		<link rel="stylesheet" type="text/css" href="../css/api.css"/>
+		<style>
+			body {
+			}
+		</style>
+	</head>
+	<body></body>
+	<script type="text/javascript" src="../script/api.js"></script>
+	<script type="text/javascript">
+		/*
+		 * 观看直播步骤：
+		 * 1.gotyeLiveCore.authRoomSession
+		 * 2.gotyeLivePlayer.init
+		 * 4.gotyeLivePlayer.play
+		 * 5.gotyeLivePublisher.addEventListener type为 liveStop  监听直播是否结束
+		 * extra ： 添加其他事件监听
+		 */
+		apiready = function() {
+			fnAuthRoomSession();
+			api.openFrame({
+				name : 'live_frame_mask',
+				url : 'live_frame_mask.html',
+				pageParam : api.pageParam
+			});
+		};
+		function fnBuildAuthRoomSession() {
+			session = {
+				roomId : api.pageParam.roomId,
+				password : api.pageParam.roomPwd,
+				nickname : api.pageParam.nickname
+			};
+		}
+
+		function fnAuthRoomSession() {
+			fnBuildAuthRoomSession();
+			var core = api.require('gotyeLiveCore');
+			core.setDebugLogEnabled({
+				enabled : true
+			});
+			core.authRoomSession(session, function(ret, err) {
+				if (ret) {
+					fnLivePlay();
+				} else {
+					api.toast({
+						msg : "进入直播间失败"
+					});
+				}
+			});
+		}
+
+		function fnLivePlay() {
+			var player = api.require('gotyeLivePlayer');
+			player.init({
+				session : session
+			});
+			player.play({
+				playView : api.frameName,
+				rect : {
+					x : 0,
+					y : 0,
+					w : api.frameWidth,
+					h : api.frameHeight
+				}
+			});
+			player.setDisplayMode({
+				mode : 'aspectFill'
+			});
+			player.addEventListener({
+				name : 'liveStop'
+			}, function(ret, err) {
+				if (ret) {
+					 alert("直播结束");
+				}
+			});
+		}
+	</script>
+</html>

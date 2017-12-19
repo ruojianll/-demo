@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+		<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+		<title>title</title>
+		<link rel="stylesheet" type="text/css" href="../css/api.css" />
+		<link rel="stylesheet" type="text/css" href="../css/style.css" />
+		<style>
+			body, html {
+				background: rgba(0, 0, 0, 0);
+			}
+			.input_layout {
+				width: 100%;
+				height: 48px;
+				background: #FFF;
+			}
+			.chat_input {
+				height: 48px;
+			}
+			.switch_btn {
+				position: relative;
+				width: 52px;
+				height: 22px;
+				margin-top: 13px;
+				margin-left: 10px;
+				border-radius: 26px;
+				background: #eee;
+			}
+			.switch_btn_img_off {
+				position: absolute;
+				width: 29px;
+				height: 29px;
+				left: 0px;
+				top: -3px;
+			}
+			.switch_btn_img_on {
+				position: absolute;
+				width: 28px;
+				height: 28px;
+				right: 0px;
+				top: -3px;
+				display: none;
+			}
+			.chat_input {
+				margin-left: 15px;
+				outline: none;
+			}
+			.divide {
+				width: 1px;
+				height: 18px;
+				margin-top: 15px;
+				background: #c0c0c0;
+			}
+			.send_btn {
+				width: 67px;
+				height: 48px;
+				line-height: 48px;
+				font-size: 14px;
+				text-align: center;
+				color: #F62B5D;
+			}
+			.close_btn {
+				position: absolute;
+				width: 44px;
+				height: 32px;
+				top: 30px;
+				right: 0px;
+				background-image: url(../image/ic_close.png);
+				background-repeat: no-repeat;
+				background-position: center;
+				background-size: 24px;
+			}
+		</style>
+	</head>
+	<body class="flex-wrap flex-vertical">
+		<div class="close_btn"></div>
+		<div class="flex-con" id="space"></div>
+		<div class="input_layout flex-wrap">
+			<div class="switch_btn" tapmode onclick="fnSwitchEvent()" id="switch_btn">
+				<img class="switch_btn_img_off" id="switch_btn_img_off" src="../image/switch_off.png" />
+				<img class="switch_btn_img_on" id="switch_btn_img_on" src="../image/switch_on.png" />
+			</div>
+			<input type="text" class="chat_input flex-con" placeholder="说点什么…" id="chat_input" />
+			<div class="divide"></div>
+			<div class="send_btn" tapmode onclick="fnSendMsg()">
+				发送
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript" src="../script/api.js"></script>
+	<script type="text/javascript">
+		apiready = function() {
+		};
+		function fnSwitchEvent() {
+			var switch_btn_img_off = $api.byId("switch_btn_img_off");
+			var switch_btn_img_on = $api.byId("switch_btn_img_on");
+			var switch_btn = $api.byId("switch_btn");
+			var chat_input = $api.byId("chat_input");
+			if (switch_btn_img_off.style.display == "none") {
+				switch_btn_img_off.style.display = "block"
+				switch_btn_img_on.style.display = "none"
+				switch_btn.style.background = "#eee";
+				chat_input.placeholder = "说点什么…";
+				isSendFreeMsg = true;
+			} else {
+				switch_btn_img_off.style.display = "none"
+				switch_btn_img_on.style.display = "block"
+				switch_btn.style.background = "#febdc8";
+				chat_input.placeholder = "开启弹幕，" + api.pageParam.price + "金币/条…";
+				isSendFreeMsg = false;
+			}
+		}
+
+		function fnSendMsg() {
+			var str = $api.byId("chat_input").value;
+			api.execScript({
+				frameName : 'live_frame_mask',
+				script : 'fnSendMsg("' + str + '");'
+			});
+			api.closeFrame();
+		}
+	</script>
+</html>

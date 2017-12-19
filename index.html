@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+		<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+		<title>Hello APP</title>
+		<link rel="stylesheet" type="text/css" href="./css/api.css" />
+		<link rel="stylesheet" type="text/css" href="./css/style.css" />
+		<style type="text/css">
+			input {
+				width :80%;
+				margin : 10px 10%;
+				padding : 5px;
+				border : 1px solid #CCC;
+				box-sizing : border-box;
+				outline: none;
+			}
+			
+			.c_room_id{
+				margin-top: 120px;
+			}
+			
+			.c_btn_layout{
+				width :80%;
+				margin : 10px 10%;
+				padding : 5px;
+				box-sizing : border-box;
+			}
+			
+			.c_btn {
+				text-align: center;
+				background: red;
+				margin: 5px;
+				padding: 10px;
+				border-radius: 5px;
+				color : #FFF;
+			}
+			
+			.c_start_btn{
+				background: green;
+			}
+		</style>
+	</head>
+	<body>
+		<input class="c_room_id" type="text" placeholder="请输入房间号" id="room_id" value="2252665"/>
+		<input type="text" placeholder="请输入房间密码" id="room_pwd" value="111"/>
+		
+		<div class="c_btn_layout flex-wrap">
+			<div class="c_btn flex-con c_start_btn" tapmode onclick="fnStartLive()">
+				开始直播
+			</div>
+			<div class="c_btn flex-con c_watch_btn" tapmode onclick="fnWatchLive()">
+				观看直播
+			</div>
+		</div>
+		
+	</body>
+	<script type="text/javascript" src="./script/api.js"></script>
+	<script type="text/javascript">
+		apiready = function() {
+		};
+		
+		/*
+		 * 房间号和密码在管理后台查看
+		 */
+		
+		function fnStartLive(){
+			var roomId = $api.byId("room_id").value;
+			var roomPwd = $api.byId("room_pwd").value;
+			if(!roomId || !roomPwd || $api.trimAll(roomId) == '' || $api.trimAll(roomPwd) == ''){
+				api.toast({
+	                msg:'房间号或密码不能为空'
+                });
+				return;
+			}
+			api.openWin({
+	            name: 'preview',
+	            url: 'html/preview.html',
+	            pageParam : {
+	            	roomId : roomId,
+	            	roomPwd : roomPwd, //主播密码 111
+	            	nickname : "主播"
+	            }
+            });
+		}
+		
+		function fnWatchLive(){
+			var roomId = $api.byId("room_id").value;
+			var roomPwd = $api.byId("room_pwd").value;
+			if(!roomId || !roomPwd || $api.trimAll(roomId) == '' || $api.trimAll(roomPwd) == ''){
+				api.toast({
+	                msg:'房间号或密码不能为空'
+                });
+				return;
+			}
+			api.openWin({
+	            name: 'watch_live',
+	            url: 'html/watch_live.html',
+	            pageParam : {
+	            	roomId : roomId,
+	            	roomPwd : roomPwd, //观众密码 222
+	            	nickname : "观众"
+	            }
+            });
+		}
+	</script>
+</html>

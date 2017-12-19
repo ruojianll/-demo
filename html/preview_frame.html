@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+		<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+		<title>title</title>
+		<link rel="stylesheet" type="text/css" href="../css/api.css"/>
+		<style>
+			body {
+			}
+		</style>
+	</head>
+	<body></body>
+	<script type="text/javascript" src="../script/api.js"></script>
+	<script type="text/javascript">
+		/*
+		 * 开启直播步骤：
+		 * 首先要在config中配置appkey和accessSecret
+		 * 1.gotyeLiveCore.authRoomSession
+		 * 2.gotyeLivePublisher.init
+		 * 3.gotyeLivePublisher.startPreview   此时进入预览
+		 * 4.gotyeLivePublisher.login
+		 * 5.gotyeLivePublisher.publish        此时开始推流直播
+		 */
+		var publisher;
+		var session;
+		apiready = function() {
+			fnAuthRoomSession();
+			api.openFrame({
+				name : 'preview_frame_mask',
+				url : 'preview_frame_mask.html'
+			});
+		};
+		function fnBuildAuthRoomSession() {
+			session = {
+				roomId : api.pageParam.roomId,
+				password : api.pageParam.roomPwd,
+				nickname : api.pageParam.nickname
+			};
+		}
+
+		function fnAuthRoomSession() {
+			fnBuildAuthRoomSession();
+			var core = api.require('gotyeLiveCore');
+			core.setDebugLogEnabled({
+				enabled : true
+			});
+			core.authRoomSession(session, function(ret, err) {
+				if (ret) {
+					fnInitPublisher();
+					setTimeout("fnLivePreview();", 300);
+				} else {
+					api.toast({
+						msg : "进入直播间失败"
+					});
+				}
+			});
+		}
+
+		function fnInitPublisher() {
+			publisher = api.require('gotyeLivePublisher');
+			publisher.init({
+				session : session
+			});
+		}
+
+		function fnSetLiveFilter() {
+			publisher.setFilter({
+				filter : 'smoothSkin'
+			});
+			publisher.setSmoothSkinFactor({
+				factor : 0.8
+			})
+		}
+
+		function fnLivePreview() {
+			fnSetLiveFilter();
+			publisher.startPreview({
+				preview : api.frameName,	//重点：要填当前frame的名称，且预览只能在frame上，不能再win上
+				position : 'front',
+				rect : {
+					x : 0,
+					y : 0,
+					w : api.frameWidth,
+					h : api.frameHeight
+				},
+				fixed : true
+			}, function(ret, err) {
+				if (ret) {
+				} else {
+				}
+			});
+		}
+
+		function fnPublisherLogin() {
+			publisher.login({
+				force : true
+			}, function(ret, err) {
+				if (ret) {
+					fnStartPublish();
+					api.closeFrame({
+						name : api.frameName+"_mask"
+                    });
+				} else {
+					alert($api.jsonToStr(err));
+				}
+			});
+		}
+		
+		function fnStartPublish(){
+			publisher.publish();
+			api.openFrame({
+	            name: 'live_frame_mask',
+	            url: 'live_frame_mask.html',
+	            pageParam : api.pageParam
+            });
+		}
+		
+		function fnSwitchCamera() {
+			publisher.switchCamera();
+		}
+	</script>
+</html>

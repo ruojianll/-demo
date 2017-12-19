@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+		<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+		<title>title</title>
+		<link rel="stylesheet" type="text/css" href="../css/api.css"/>
+		<link rel="stylesheet" type="text/css" href="../css/style.css"/>
+		<style>
+			body, html {
+				background: rgba(0,0,0,0);
+				overflow: hidden;
+			}
+			.c_chat_room {
+				position: absolute;
+				bottom: 60px;
+				left: 20px;
+				width: 60%;
+				height: 40%;
+				padding: 5px;
+				border-radius: 5px;
+				background: rgba(0,0,0,0.3);
+				color: #FFF;
+				overflow: scroll;
+			}
+			.c_chat_item {
+				margin-top: 5px;
+			}
+			.c_chat_username {
+				white-space: nowrap;
+			}
+			.c_footer {
+				position: absolute;
+				bottom: 0px;
+				left: 0px;
+				width: 100%;
+				height: 50px;
+			}
+			.c_chat_btn {
+				width: 37px;
+				height: 37px;
+				background: url(../image/ic_chat.png);
+				background-repeat: no-repeat;
+				background-position: center;
+				background-size: 37px;
+			}
+			.c_gift_btn {
+				width: 37px;
+				height: 37px;
+				background: url(../image/ic_gift.png);
+				background-repeat: no-repeat;
+				background-position: center;
+				background-size: 37px;
+			}
+			.c_switch_camera_btn {
+				width: 37px;
+				height: 37px;
+				background: url(../image/ic_switch_camera.png);
+				background-repeat: no-repeat;
+				background-position: center;
+				background-size: 37px;
+			}
+			.c_close_btn {
+				width: 37px;
+				height: 37px;
+				background: url(../image/ic_close.png);
+				background-repeat: no-repeat;
+				background-position: center;
+				background-size: 37px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="c_chat_room" id="chat_room"></div>
+		<div class="c_footer flex-wrap">
+			<div class="flex-con c_chat_btn" tapmode onclick="fnOpenChatFrame()"></div>
+			<div class="flex-con c_gift_btn"></div>
+			<div class="flex-con c_switch_camera_btn" tapmode onclick="fnSwitchCamera()"></div>
+			<div class="flex-con c_close_btn" tapmode onclick="api.closeWin();"></div>
+		</div>
+	</body>
+	<script type="text/template" id="template">
+		{{~it:value:index}}
+		<div class="c_chat_item flex-wrap">
+		<div class="c_chat_username">
+		{{= value.nickname}}
+		</div>
+		：
+		<div class="c_chat_msg">
+		{{= value.msg}}
+		</div>
+		</div>
+		{{~}}
+	</script>
+	<script type="text/javascript" src="../script/api.js"></script>
+	<script type="text/javascript" src="../script/doT.min.js"></script>
+	<script type="text/javascript">
+		/*
+		 * 聊天室
+		 * 1.gotyeLiveChat.init
+		 * 2.gotyeLiveChat.login
+		 * 3.gotyeLiveChat.addEventListener 根据name设置不同的事件监听 例如：receiveMsg 接收消息
+		 * 4.gotyeLiveChat.sendMessage      发送自定义消息
+		 */
+		var session;
+		var chatRoom;
+		var msgList = [];
+		apiready = function() {
+			fnInitChatRoom();
+		};
+		function fnSwitchCamera() {
+			api.execScript({
+				frameName : 'preview_frame',
+				script : 'fnSwitchCamera();'
+			});
+		}
+
+		function fnBuildAuthRoomSession() {
+			session = {
+				roomId : api.pageParam.roomId,
+				password : api.pageParam.roomPwd,
+				nickname : api.pageParam.nickname
+			};
+		}
+
+		function fnInitChatRoom() {
+			fnBuildAuthRoomSession();
+			chatRoom = api.require('gotyeLiveChat');
+			chatRoom.init(session);
+			chatRoom.login(function(ret, err) {
+				if (ret) {
+					api.toast({
+						msg : '进入聊天室成功'
+					});
+					fnAddMsgOnInRoom();
+					fnAddChatRoomListener();
+				} else {
+					api.toast({
+						msg : '进入聊天室失败'
+					});
+				}
+			});
+		}
+
+		function fnAddMsgOnInRoom() {
+			var msg = {
+				nickname : '系统',
+				msg : '进入聊天室成功'
+			}
+			msgList.push(msg);
+			uz_doTList("template", $api.byId("chat_room"), msgList, true);
+		}
+
+		function fnAddChatRoomListener() {
+			chatRoom.addEventListener({
+				name : 'receiveMsg'
+			}, function(ret, err) {
+				if (ret) {
+					fnOnReceiveMsg(ret);
+				}
+			});
+		}
+
+		function fnOnReceiveMsg(ret) {
+			var extra = $api.strToJson(ret.extra);
+			var msg = {
+				nickname : extra.nickname,
+				msg : ret.text
+			}
+			msgList = [];
+			msgList.push(msg);
+			uz_doTList("template", $api.byId("chat_room"), msgList, true);
+		}
+
+		//送礼物，踢人，禁言，与发送消息基本相同，只要修改type类型进行区分就可以了，类型自定义
+		function fnSendMsg(msg) {
+			var extra = {
+				"nickname" : api.pageParam.nickname,
+				'type' : 'freeMsg'
+			};
+			chatRoom.sendMessage({
+				type : 1,
+				text : msg,
+				extra : $api.jsonToStr(extra)
+			}, function(ret, err) {
+				if (err) {
+					api.toast({
+						msg : '消息发送失败'
+					});
+				} else {
+					fnOnSendMsgSuccess(extra,msg);
+				}
+			});
+		}
+
+		function fnOnSendMsgSuccess(extra,msg) {
+			msgList = [];
+			var msgJson = {
+				nickname : extra.nickname,
+				msg : msg
+			}
+			msgList.push(msgJson);
+			uz_doTList("template", $api.byId("chat_room"), msgList, true);
+		}
+
+		function fnOpenChatFrame() {
+			api.openFrame({
+				name : 'live_chat_frame',
+				url : 'live_chat_frame.html'
+			});
+		}
+
+		function uz_doTList(templateId, listId, data, isAppend) {
+			var tempFn = doT.template($api.byId(templateId).innerHTML);
+			var resultText = tempFn(data);
+			if (isAppend) {
+				$api.append(listId, resultText);
+			} else {
+				$api.html(listId, resultText);
+			}
+			api.parseTapmode();
+		}
+	</script>
+</html>
